@@ -1,14 +1,12 @@
-# Usamos la imagen base de OpenJDK 21 en Alpine para menor tamaño
-FROM eclipse-temurin:21-jdk-alpine
-
-# Directorio de trabajo dentro del contenedor
+# Etapa 1: Build del JAR
+FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /app
+COPY . .
+RUN ./mvnw -B package -DskipTests
 
-# Copiamos el JAR construido a la imagen
-COPY target/Tienda-App-0.0.1-SNAPSHOT.jar app.jar
-
-# Exponemos el puerto en el que correrá la app
+# Etapa 2: Imagen final liviana
+FROM eclipse-temurin:21-jdk-alpine
+WORKDIR /app
+COPY --from=build /app/target/Tienda-App-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
-
-# Comando para ejecutar la aplicación
 ENTRYPOINT ["java", "-jar", "app.jar"]
